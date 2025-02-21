@@ -386,53 +386,53 @@ def data_insight_page():
         
                 # Fix for Feature Importance section
         if analysis_type == "Feature Importance":
-        # Calculate feature importance using mutual information
-        from sklearn.feature_selection import mutual_info_classif
-        import numpy as np
-        
-        # Create a clean copy of the dataframe for analysis
-        X_clean = df.drop(columns=["target"]).copy()
-        y = df["target"].copy()
-        
-        # Ensure all columns are numeric and handle NaN values
-        for col in X_clean.columns:
-            # Convert to numeric and fill NaN with column mean
-            X_clean[col] = pd.to_numeric(X_clean[col], errors='coerce')
-            if X_clean[col].isna().any():
-                # Replace NaN with mean of column
-                X_clean[col] = X_clean[col].fillna(X_clean[col].mean())
-        
-        # Convert to numpy array with explicit dtype
-        X_array = X_clean.to_numpy(dtype=np.float64)
-        
-        try:
-            # Compute Mutual Information Scores
-            mi_scores = mutual_info_classif(X_array, y)
-            mi_df = pd.DataFrame({
-                'Feature': X_clean.columns,
-                'Importance': mi_scores
-            }).sort_values('Importance', ascending=False)
+            # Calculate feature importance using mutual information
+            from sklearn.feature_selection import mutual_info_classif
+            import numpy as np
             
-            # Plot
-            fig = px.bar(
-                mi_df,
-                y='Feature',
-                x='Importance',
-                orientation='h',
-                title="Feature Importance (Mutual Information)",
-                color='Importance',
-                color_continuous_scale='viridis'
-            )
+            # Create a clean copy of the dataframe for analysis
+            X_clean = df.drop(columns=["target"]).copy()
+            y = df["target"].copy()
             
-            fig.update_layout(
-                xaxis_title="Mutual Information Score",
-                yaxis_title="",
-                yaxis={'categoryorder':'total ascending'},
-                height=500
-            )
+            # Ensure all columns are numeric and handle NaN values
+            for col in X_clean.columns:
+                # Convert to numeric and fill NaN with column mean
+                X_clean[col] = pd.to_numeric(X_clean[col], errors='coerce')
+                if X_clean[col].isna().any():
+                    # Replace NaN with mean of column
+                    X_clean[col] = X_clean[col].fillna(X_clean[col].mean())
             
-            st.plotly_chart(fig, use_container_width=True)
+            # Convert to numpy array with explicit dtype
+            X_array = X_clean.to_numpy(dtype=np.float64)
             
+            try:
+                # Compute Mutual Information Scores
+                mi_scores = mutual_info_classif(X_array, y)
+                mi_df = pd.DataFrame({
+                    'Feature': X_clean.columns,
+                    'Importance': mi_scores
+                }).sort_values('Importance', ascending=False)
+                
+                # Plot
+                fig = px.bar(
+                    mi_df,
+                    y='Feature',
+                    x='Importance',
+                    orientation='h',
+                    title="Feature Importance (Mutual Information)",
+                    color='Importance',
+                    color_continuous_scale='viridis'
+                )
+                
+                fig.update_layout(
+                    xaxis_title="Mutual Information Score",
+                    yaxis_title="",
+                    yaxis={'categoryorder':'total ascending'},
+                    height=500
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
+                
             st.markdown("""
             <div class="info-box">
             <h4>Feature Importance Analysis:</h4>
