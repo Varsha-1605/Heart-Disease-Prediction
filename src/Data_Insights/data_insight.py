@@ -386,34 +386,33 @@ def data_insight_page():
         
                 # Fix for Feature Importance section
         if analysis_type == "Feature Importance":
-            # Handle categorical columns properly
-            from sklearn.feature_selection import mutual_info_classif
-            
-            # Only use numeric columns or properly encode categorical ones
-            # Create a copy to avoid modifying original dataframe
-            X_mi = df.copy()
-            
-            # Identify categorical columns (you may need to adjust this list based on your data)
-            categorical_cols = ['sex', 'cp', 'fbs', 'restecg', 'exang', 'slope', 'ca', 'thal']
-            
-            # One-hot encode categorical variables
-            for col in categorical_cols:
-                if col in X_mi.columns:
-                    # Convert to string first to ensure proper encoding
-                    X_mi[col] = X_mi[col].astype(str)
-            
-            # Get dummies for categorical columns
-            X_mi = pd.get_dummies(X_mi.drop(columns=["target"]), drop_first=True)
-            y = df["target"]
-            
-            # Now calculate mutual information
-            mi_scores = mutual_info_classif(X_mi, y)
+        # Calculate feature importance using mutual information
+        from sklearn.feature_selection import mutual_info_classif
+        import numpy as np
+        
+        # Create a clean copy of the dataframe for analysis
+        X_clean = df.drop(columns=["target"]).copy()
+        y = df["target"].copy()
+        
+        # Ensure all columns are numeric and handle NaN values
+        for col in X_clean.columns:
+            # Convert to numeric and fill NaN with column mean
+            X_clean[col] = pd.to_numeric(X_clean[col], errors='coerce')
+            if X_clean[col].isna().any():
+                # Replace NaN with mean of column
+                X_clean[col] = X_clean[col].fillna(X_clean[col].mean())
+        
+        # Convert to numpy array with explicit dtype
+        X_array = X_clean.to_numpy(dtype=np.float64)
+        
+        try:
+            # Compute Mutual Information Scores
+            mi_scores = mutual_info_classif(X_array, y)
             mi_df = pd.DataFrame({
-                'Feature': X_mi.columns,
+                'Feature': X_clean.columns,
                 'Importance': mi_scores
             }).sort_values('Importance', ascending=False)
             
-    
             # Plot
             fig = px.bar(
                 mi_df,
