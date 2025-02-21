@@ -384,20 +384,36 @@ def data_insight_page():
             ["Feature Importance", "Risk Profile Analysis", "Age-Gender Interaction"]
         )
         
+                # Fix for Feature Importance section
         if analysis_type == "Feature Importance":
-            # Calculate feature importance using mutual information
+            # Handle categorical columns properly
             from sklearn.feature_selection import mutual_info_classif
             
-            X = df.drop(columns=["target"])
+            # Only use numeric columns or properly encode categorical ones
+            # Create a copy to avoid modifying original dataframe
+            X_mi = df.copy()
+            
+            # Identify categorical columns (you may need to adjust this list based on your data)
+            categorical_cols = ['sex', 'cp', 'fbs', 'restecg', 'exang', 'slope', 'ca', 'thal']
+            
+            # One-hot encode categorical variables
+            for col in categorical_cols:
+                if col in X_mi.columns:
+                    # Convert to string first to ensure proper encoding
+                    X_mi[col] = X_mi[col].astype(str)
+            
+            # Get dummies for categorical columns
+            X_mi = pd.get_dummies(X_mi.drop(columns=["target"]), drop_first=True)
             y = df["target"]
             
-            # Compute Mutual Information Scores
-            mi_scores = mutual_info_classif(X, y)
+            # Now calculate mutual information
+            mi_scores = mutual_info_classif(X_mi, y)
             mi_df = pd.DataFrame({
-                'Feature': X.columns,
+                'Feature': X_mi.columns,
                 'Importance': mi_scores
             }).sort_values('Importance', ascending=False)
             
+    
             # Plot
             fig = px.bar(
                 mi_df,
