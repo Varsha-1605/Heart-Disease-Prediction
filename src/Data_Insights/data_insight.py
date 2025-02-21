@@ -432,6 +432,36 @@ def data_insight_page():
                 )
                 
                 st.plotly_chart(fig, use_container_width=True)
+
+            except Exception as e:
+                st.error(f"An error occurred during mutual information calculation: {str(e)}")
+                st.info("As an alternative, let's display a simpler feature correlation with the target")
+                
+                # Fallback to simple correlation analysis
+                corr_with_target = X_clean.corrwith(y).abs().sort_values(ascending=False)
+                corr_df = pd.DataFrame({
+                    'Feature': corr_with_target.index,
+                    'Correlation': corr_with_target.values
+                })
+                
+                fig = px.bar(
+                    corr_df,
+                    y='Feature',
+                    x='Correlation',
+                    orientation='h',
+                    title="Feature Correlation with Target (Absolute Value)",
+                    color='Correlation',
+                    color_continuous_scale='viridis'
+                )
+                
+                fig.update_layout(
+                    xaxis_title="Absolute Correlation",
+                    yaxis_title="",
+                    yaxis={'categoryorder':'total ascending'},
+                    height=500
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
                 
             st.markdown("""
             <div class="info-box">
